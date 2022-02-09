@@ -2,18 +2,17 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const helmet = require('helmet')
-const Joi = require('joi')
 
 // MONGO CONNECTION
 const { connectToDB } = require('./database')
 connectToDB()
 
+// ROUTES
+const genres = require('./routes/genres')
+
 // MIDDLEWARE
 app.use(express.json())
 app.use(helmet())
-
-// ROUTES
-const genres = require('./routes/genres')
 
 // GENRES
 app.use('/api/genres', genres)
