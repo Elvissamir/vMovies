@@ -1,0 +1,35 @@
+version: '3.7'
+
+networks:
+  app-network:
+    driver: bridge
+
+services:
+  node: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./
+      args: 
+        - DEV_PORT=${DEV_PORT}
+    container_name: vmovies_node
+    working_dir: /var/www
+    ports:
+      - 3000:3000
+    volumes:
+      - ./:/var/www 
+    networks:
+      - app-network
+  
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - app-network
+
+volumes:
+  mongodb:
+  mongodb_config:
