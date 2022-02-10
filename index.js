@@ -8,6 +8,7 @@ const { connectToDB } = require('./database')
 connectToDB()
 
 // ROUTES
+const movies = require('./routes/movies')
 const customers = require('./routes/customers')
 const genres = require('./routes/genres')
 
@@ -16,6 +17,7 @@ app.use(express.json())
 app.use(helmet())
 
 // GENRES
+app.use('/api/movies', movies)
 app.use('/api/genres', genres)
 app.use('/api/customers', customers)
 

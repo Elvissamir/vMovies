@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { Genre, validateGenre } = require('../models/genre')
+const { Genre, validateGenre } = require('../models/Genre')
 
 const genresErrors = {
     notFound: {status: 404, message:'The genre you are looking for does not exist.'}
