@@ -8,6 +8,7 @@ const { connectToDB } = require('./database')
 connectToDB()
 
 // ROUTES
+const customers = require('./routes/customers')
 const genres = require('./routes/genres')
 
 // MIDDLEWARE
@@ -16,6 +17,7 @@ app.use(helmet())
 
 // GENRES
 app.use('/api/genres', genres)
+app.use('/api/customers', customers)
 
 // LISTEN TO PORT
 const port = process.env.PORT || process.env.DEV_PORT

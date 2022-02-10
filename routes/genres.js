@@ -1,20 +1,10 @@
 const express = require('express')
 const router = express.Router()
-const Joi = require('joi')
-const mongoose = require('mongoose')
+const { Genre, validateGenre } = require('../models/genre')
+
 const genresErrors = {
     notFound: {status: 404, message:'The genre you are looking for does not exist.'}
 }
-
-// GENRES MODEL
-const Genre = mongoose.model('Genre', {
-    name: {
-        type: String,
-        required: true,
-        minlength: 5,
-        maxlength: 50
-    }
-})
 
 //  GET ALL
 router.get('/', async (req, res) => {
@@ -35,11 +25,11 @@ router.post('/', async (req, res) => {
     const { error } = validateGenre(req.body)
     if (error) return res.status(400).send(error.details[0].message)
 
-    const genre = new Genre({
+    let genre = new Genre({
         name: req.body.name
     })
 
-    genre.save()
+    genre = await genre.save()
 
     res.send(genre)
 })
@@ -67,14 +57,6 @@ router.delete('/:id', async (req, res) => {
 })
 
 // FUNCTIONS
-const validateGenre = (genre) => {
-    const genreSchema = Joi.object({
-        name: Joi.string().min(5).max(50).required()
-    })
-
-    return genreSchema.validate(genre)
-}
-
 const sendErrorMessage = (res, errorName) => {
     const error = genresErrors[errorName]
     return res.status(error.status).send(error.message)
