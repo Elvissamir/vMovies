@@ -11,6 +11,7 @@ connectToDB()
 const movies = require('./routes/movies')
 const customers = require('./routes/customers')
 const genres = require('./routes/genres')
+const rentals = require('./routes/rentals')
 
 // MIDDLEWARE
 app.use(express.json())
@@ -20,6 +21,7 @@ app.use(helmet())
 app.use('/api/movies', movies)
 app.use('/api/genres', genres)
 app.use('/api/customers', customers)
+app.use('/api/rentals', rentals)
 
 // LISTEN TO PORT
 const port = process.env.PORT || process.env.DEV_PORT
