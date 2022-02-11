@@ -62,13 +62,13 @@ const Rental = mongoose.model('Rental', {
     }
 })
 
-const validateRental = (rental) => {
-    const rentalSchema = Joi.object({
+const validateRental = (data) => {
+    const dataSchema = Joi.object({
         customerId: Joi.objectId().required(),
         movieId: Joi.objectId().required(),
     })
 
-    return rentalSchema.validate(rental)
+    return dataSchema.validate(data)
 }
 
 module.exports = {

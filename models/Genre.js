@@ -13,12 +13,12 @@ const mongooseGenreSchema = {
 const Genre = mongoose.model('Genre', mongooseGenreSchema)
 
 // VALIDATION
-const validateGenre = (genre) => {
-    const genreSchema = Joi.object({
+const validateGenre = (data) => {
+    const dataSchema = Joi.object({
         name: Joi.string().min(5).max(50).required()
     })
 
-    return genreSchema.validate(genre)
+    return dataSchema.validate(data)
 }
 
 module.exports = {

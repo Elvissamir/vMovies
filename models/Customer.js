@@ -27,15 +27,15 @@ const Customer = mongoose.model('Customer', {
     }
 })
 
-const validateCustomer = (customer) => {
-    const customerSchema = Joi.object({
+const validateCustomer = (data) => {
+    const dataSchema = Joi.object({
         first_name: Joi.string().min(2).max(15).required(),
         last_name: Joi.string().min(2).max(15).required(),
         phone: Joi.string().min(11).max(11).required(),
         isGold: Joi.boolean().required()
     })
 
-    return customerSchema.validate(customer)
+    return dataSchema.validate(data)
 }
 
 module.exports = {

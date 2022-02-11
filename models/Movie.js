@@ -29,15 +29,15 @@ const Movie = mongoose.model('Movie', {
     }
 })
 
-const validateMovie = (movie) => {
-    const movieSchema = Joi.object({
+const validateMovie = (data) => {
+    const dataSchema = Joi.object({
         title: Joi.string().min(2).max(255).required(),
         genreIds: Joi.array().items(Joi.objectId()).min(1).required(),
         numberInStock: Joi.number().min(0).max(255).required(),
         dailyRentalRate: Joi.number().min(0).max(255).required()
     })
 
-    return movieSchema.validate(movie)
+    return dataSchema.validate(data)
 }
 
 module.exports = {
