@@ -2,6 +2,12 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const helmet = require('helmet')
+const config = require('config')
+
+if (!config.get('jwtPrivateKey')) {
+    console.error('FATAL ERROR: jwtPrivateKey is not defined')
+    process.exit(1)
+}
 
 // MONGO CONNECTION
 const { connectToDB } = require('./database')
