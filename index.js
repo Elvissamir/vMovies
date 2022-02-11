@@ -1,4 +1,5 @@
 require('dotenv').config()
+require('express-async-errors')
 const express = require('express')
 const app = express()
 const helmet = require('helmet')
@@ -22,16 +23,18 @@ const users = require('./routes/users')
 const auth = require('./routes/auth')
 
 // MIDDLEWARE
+const error = require('./middleware/error')
 app.use(express.json())
 app.use(helmet())
 
-// GENRES
 app.use('/api/movies', movies)
 app.use('/api/genres', genres)
 app.use('/api/rentals', rentals)
 app.use('/api/customers', customers)
 app.use('/api/users', users)
 app.use('/api/login', auth)
+
+app.use(error)
 
 // LISTEN TO PORT
 const port = process.env.PORT || process.env.DEV_PORT

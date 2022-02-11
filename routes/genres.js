@@ -8,13 +8,11 @@ const genresErrors = {
     notFound: {status: 404, message:'The genre you are looking for does not exist.'}
 }
 
-//  GET ALL
-router.get('/', async (req, res) => {
-    const genres = await Genre.find()
-    res.send(genres)
+router.get('/', async (req, res, next) => {
+    const genres = await Genre.find().sort('name')
+    res.send(genres) 
 })
 
-// GET ONE
 router.get('/:id', async (req, res) => {
     const genre = await Genre.findById(req.params.id)
     if (!genre) return sendErrorMessage(res, 'notFound')
@@ -22,7 +20,6 @@ router.get('/:id', async (req, res) => {
     res.send(genre)
 })
 
-// POST
 router.post('/', auth, async (req, res) => {
     const { error } = validateGenre(req.body)
     if (error) return res.status(400).send(error.details[0].message)
@@ -36,7 +33,6 @@ router.post('/', auth, async (req, res) => {
     res.send(genre)
 })
 
-// PUT
 router.put('/:id', auth, async (req, res) => {
     const genre = await Genre.findById(req.params.id)
     if (!genre) return sendErrorMessage(res, 'notFound')
@@ -50,7 +46,6 @@ router.put('/:id', auth, async (req, res) => {
     res.send(genre)
 })
 
-// DELETE
 router.delete('/:id', [ auth, admin ], async (req, res) => {
     const genre = await Genre.findByIdAndRemove(req.params.id)
     if (!genre) return sendErrorMessage(res, 'notFound')
