@@ -17,14 +17,14 @@ router.post('/', async (req, res) => {
     const { error } = validateCustomer(req.body)
     if (error) return res.status(400).send(error.details[0].message)
 
-    let customer = new Customer({
+    const customer = new Customer({
         first_name: req.body.first_name,
         last_name: req.body.last_name,
         phone: req.body.phone,
         isGold: req.body.isGold,
     })
     
-    customer = await customer.save()
+    await customer.save()
 
     res.send(customer)
 })
@@ -35,7 +35,7 @@ router.put('/:id', async (req, res) => {
     const { error } = validateCustomer(data)
     if (error) return res.status(400).send(error.details[0].message)
     
-    let customer = await Customer.findById(req.params.id)
+    const customer = await Customer.findById(req.params.id)
     if (!customer) return res.status(404).send('The customer does not exist.')
 
     customer.first_name = data.first_name
@@ -43,7 +43,7 @@ router.put('/:id', async (req, res) => {
     customer.isGold = data.isGold
     customer.phone = data.phone
 
-    customer = await customer.save()
+    await customer.save()
     res.send(customer)
 })
 

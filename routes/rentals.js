@@ -38,7 +38,7 @@ router.post('/', async (req, res) => {
     try {
         rental.save()
         movie.numberInStock = movie.numberInStock - 1
-        movie = await movie.save()
+        await movie.save()
 
         res.send(rental)
     } 
