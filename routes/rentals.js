@@ -40,8 +40,6 @@ router.post('/', async (req, res) => {
         movie.numberInStock = movie.numberInStock - 1
         movie = await movie.save()
 
-        console.log("Movie", movie)
-    
         res.send(rental)
     } 
     catch (ex) {
