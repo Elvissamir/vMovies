@@ -15,7 +15,7 @@ router.post('/', async (req, res) => {
     const customer = await Customer.findById(req.body.customerId)
     if (!customer) return res.status(404).send('The customer does not exist')
 
-    const movie = await Movie.findById(req.body.movieId)
+    let movie = await Movie.findById(req.body.movieId)
     if (!movie) return res.status(404).send('The movie does not exist')
 
     if (movie.numberInStock === 0) return res.status(400).send('Movie not available...')
@@ -35,12 +35,18 @@ router.post('/', async (req, res) => {
         }
     })
 
-    rental = await rental.save()
-    
-    movie.numberInStock--
-    movie.save()
+    try {
+        rental.save()
+        movie.numberInStock = movie.numberInStock - 1
+        movie = await movie.save()
 
-    res.send(rental)
+        console.log("Movie", movie)
+    
+        res.send(rental)
+    } 
+    catch (ex) {
+        res.status(500).send("Something failed.")
+    }
 })
 
 module.exports = router

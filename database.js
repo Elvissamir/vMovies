@@ -1,12 +1,12 @@
 const mongoose = require('mongoose')
 
+const mongoBaseUrl = (process.env.DEV_USING_DOCKER == "true")? process.env.DEV_MONGO_CONTAINER_URL : process.env.DEV_MONGO_LOCAL_URL 
+const databaseName = process.env.DATABASENAME
+const connectionUrl = `${mongoBaseUrl}/${databaseName}`
+
 async function connect() {
-    const mongoBaseUrl = (process.env.DEV_USING_DOCKER == "true")? process.env.DEV_MONGO_CONTAINER_URL : process.env.DEV_MONGO_LOCAL_URL 
-    const databaseName = process.env.DATABASENAME
-    const connectionUrl = `${mongoBaseUrl}/${databaseName}`
-    
     console.log('(MONGOOSE) Using url:',connectionUrl)
-    await mongoose.connect(mongoBaseUrl)
+    await mongoose.connect(connectionUrl)
 }
 
 async function connectToDB() {
@@ -16,5 +16,6 @@ async function connectToDB() {
 }
 
 module.exports = {
-    connectToDB
+    connectToDB,
+    connectionUrl
 }
