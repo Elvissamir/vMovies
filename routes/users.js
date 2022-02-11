@@ -1,11 +1,17 @@
 const router = require('express').Router()
+const auth = require('../middleware/auth')
 const _ = require('lodash')
 const bcrypt = require('bcrypt')
 const { User, validateUser } = require('../models/User')
 
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
     const users = await User.find()
     res.send(users)
+})
+
+router.get('/me', auth, async (req, res) => {
+    const user = await User.findById(req.user._id).select('-password')
+    res.send(user)
 })
 
 router.post('/', async (req, res) => {
