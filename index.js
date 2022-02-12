@@ -7,10 +7,16 @@ require('winston-mongodb')
 const helmet = require('helmet')
 const config = require('config')
 
-const { connectionUrl } = require('./database')
+const { connectToDB, connectionUrl } = require('./database')
 
 process.on('uncaughtException', (ex) => {
     winston.error(ex.message, ex)
+    process.exit(1)
+})
+
+process.on('unhandledRejection', (ex) => {
+    winston.error(ex.message, ex)
+    process.exit(1)
 })
 
 winston.add(new winston.transports.File({filename: 'logfile.log' }))
@@ -23,7 +29,6 @@ if (!config.get('jwtPrivateKey')) {
 }
 
 // MONGO CONNECTION
-const { connectToDB } = require('./database')
 connectToDB()
 
 // ROUTES
