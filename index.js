@@ -9,6 +9,10 @@ const config = require('config')
 
 const { connectionUrl } = require('./database')
 
+process.on('uncaughtException', (ex) => {
+    winston.error(ex.message, ex)
+})
+
 winston.add(new winston.transports.File({filename: 'logfile.log' }))
 winston.add(new winston.transports.Console())
 winston.add(new winston.transports.MongoDB({ db: connectionUrl, level: 'error'}))
