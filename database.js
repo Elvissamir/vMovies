@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-
 const mongoBaseUrl = (process.env.DEV_USING_DOCKER == "true")? process.env.DEV_MONGO_CONTAINER_URL : process.env.DEV_MONGO_LOCAL_URL 
 const databaseName = process.env.DATABASENAME
 const connectionUrl = `${mongoBaseUrl}/${databaseName}`

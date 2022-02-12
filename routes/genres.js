@@ -9,6 +9,7 @@ const genresErrors = {
 }
 
 router.get('/', async (req, res, next) => {
+
     const genres = await Genre.find().sort('name')
     res.send(genres) 
 })

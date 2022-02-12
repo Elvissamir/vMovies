@@ -2,8 +2,12 @@ require('dotenv').config()
 require('express-async-errors')
 const express = require('express')
 const app = express()
+const winston = require('winston')
 const helmet = require('helmet')
 const config = require('config')
+
+winston.add(new winston.transports.File({filename: 'logfile.log' }))
+winston.add(new winston.transports.Console())
 
 if (!config.get('jwtPrivateKey')) {
     console.error('FATAL ERROR: jwtPrivateKey is not defined')
