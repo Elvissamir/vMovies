@@ -1,61 +1,17 @@
 require('dotenv').config()
 require('express-async-errors')
+const winston = require('winston')
 const express = require('express')
 const app = express()
-const winston = require('winston')
-require('winston-mongodb')
-const helmet = require('helmet')
-const config = require('config')
+const { connectToDB } = require('./startup/database')
 
-const { connectToDB, connectionUrl } = require('./database')
-
-process.on('uncaughtException', (ex) => {
-    winston.error(ex.message, ex)
-    process.exit(1)
-})
-
-process.on('unhandledRejection', (ex) => {
-    winston.error(ex.message, ex)
-    process.exit(1)
-})
-
-winston.add(new winston.transports.File({filename: 'logfile.log' }))
-winston.add(new winston.transports.Console())
-winston.add(new winston.transports.MongoDB({ db: connectionUrl, level: 'error'}))
-
-if (!config.get('jwtPrivateKey')) {
-    console.error('FATAL ERROR: jwtPrivateKey is not defined')
-    process.exit(1)
-}
-
-// MONGO CONNECTION
+require('./startup/logging')()
+require('./startup/config')()
+require('./startup/routes')(app)
 connectToDB()
-
-// ROUTES
-const movies = require('./routes/movies')
-const genres = require('./routes/genres')
-const rentals = require('./routes/rentals')
-const customers = require('./routes/customers')
-const users = require('./routes/users')
-const auth = require('./routes/auth')
-
-// MIDDLEWARE
-const error = require('./middleware/error')
-app.use(express.json())
-app.use(helmet())
-
-app.use('/api/movies', movies)
-app.use('/api/genres', genres)
-app.use('/api/rentals', rentals)
-app.use('/api/customers', customers)
-app.use('/api/users', users)
-app.use('/api/login', auth)
-
-app.use(error)
 
 // LISTEN TO PORT
 const port = process.env.PORT || process.env.DEV_PORT
-
 app.listen(port, () => {
-    console.log(`(NODE) Listening to port ${port}...`)
+    winston.info(`(NODE) Listening to port ${port}...`)
 })
