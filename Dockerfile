@@ -6,5 +6,5 @@ WORKDIR /var/www
 COPY package*.json ./
 RUN npm install -g nodemon
 COPY . .
-CMD [ "nodemon", "index.js"]
+CMD [ "nodemon", "server.js"]
 EXPOSE ${DEV_PORT}
