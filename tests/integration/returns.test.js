@@ -3,11 +3,14 @@ const request = require('supertest')
 const { User } = require('../../models/User')
 const { Rental } = require('../../models/Rental')
 const mongoose = require('mongoose')
+const moment = require('moment')
+const { Movie } = require('../../models/Movie')
 
 describe('POST /api/returns', () => {
     let token
     let customerId
     let movieId
+    let movie
     let rental
     let data
 
@@ -15,6 +18,17 @@ describe('POST /api/returns', () => {
         token = new User().generateAuthToken()
         customerId = mongoose.Types.ObjectId()
         movieId = mongoose.Types.ObjectId()
+
+        movie = new Movie({
+            _id: movieId,
+            title: 'title',
+            dailyRentalRate: 2,
+            numberInStock: 100,
+            genres: [{ name: 'Genre', _id: mongoose.Types.ObjectId()}]
+        })
+
+        await movie.save()
+
         data = { customerId, movieId }
 
         rental = new Rental({
@@ -38,6 +52,7 @@ describe('POST /api/returns', () => {
     })
 
     afterEach(async () => {
+        await Movie.deleteMany()
         await Rental.deleteMany()
     })
 
@@ -48,9 +63,48 @@ describe('POST /api/returns', () => {
                         .send(data)
     }
 
-    it('Should return 200 if valid request', async () => {
+    it('Should return 200 and if valid request', async () => {
         const res = await sendPostRequest()
         expect(res.status).toBe(200)
+    })
+
+    it('Should set the return date', async () => {
+        await sendPostRequest()
+        
+        rentalInDB = await Rental.findById(rental._id)
+        const diff = new Date() - rentalInDB.dateReturned
+        expect(diff).toBeLessThan(10 * 1000)
+    })
+
+    it('Should calculate the rental fee', async () => {
+        rental.dateOut = moment().add(-7, 'days').toDate()
+        await rental.save()
+
+        await sendPostRequest()
+
+        const rentalInDB = await Rental.findById(rental._id)
+        expect(rentalInDB.rentalFee).toBe(14)
+    })
+
+    it('Should increase the movie stock', async () => {
+        await sendPostRequest()
+
+        const movieInDB = await Movie.findById(movieId)
+
+        expect(movieInDB.numberInStock).toBe(101)
+    })
+
+    it('Should return the rental in the response', async () => {
+        const res = await sendPostRequest()
+
+        expect(Object.keys(res.body))
+            .toEqual(expect.arrayContaining([
+                'dateOut', 
+                'dateReturned', 
+                'rentalFee', 
+                'customer',
+                'movie'
+            ]))
     })
 
     it('Should return 401 if client is not logged in', async () => {
@@ -61,24 +115,31 @@ describe('POST /api/returns', () => {
     })
 
     it('Should return 400 if customer id is not provided', async () => {
-        data.customerId = undefined
+        data.customerId = ''
 
         const res = await sendPostRequest()
         expect(res.status).toBe(400)
     })
 
     it('Should return 400 if movie id is not provided', async () => {
-        data.movieId = undefined
+        data.movieId = ''
 
         const res = await sendPostRequest()
         expect(res.status).toBe(400)
     })
 
     it('Should return 400 if no rental found for this customer/movie', async () => {
-        data.customerId = mongoose.Types.ObjectId(), 
-        data.movieId = mongoose.Types.ObjectId() 
+        await Rental.findByIdAndDelete(rental._id)
 
         const res = await sendPostRequest()
         expect(res.status).toBe(404)
+    })
+
+    it('Should return 400 if return already processed', async () => {
+        rental.dateReturned = new Date()
+        await rental.save()
+
+        const res = await sendPostRequest()
+        expect(res.status).toBe(400)
     })
 })
