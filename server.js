@@ -1,4 +1,4 @@
-const app = require('./index')
+const app = require('./app')
 const winston = require('winston')
 
 const port = process.env.PORT || process.env.DEV_PORT

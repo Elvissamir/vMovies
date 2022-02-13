@@ -1,26 +1,27 @@
 const { Genre } = require('../../models/Genre')
 const { User } = require('../../models/User')
 const request = require('supertest')
-const app = require('../../index')
-const { random, set } = require('lodash')
+const app = require('../../app')
+const { random } = require('lodash')
+const mongoose = require('mongoose')
 
 describe('Route /api/genres', () => {
     afterEach(async () => {
-        await Genre.deleteMany({})
+        await Genre.deleteMany()
     })
 
     describe('GET /', () => {
         it('Should return all genres', async () => {
             await Genre.collection.insertMany([
-                { name: "genre1" },
-                { name: 'genre2' }
+                { name: "genreA" },
+                { name: 'genreB' }
             ])
 
             const res = await request(app).get('/api/genres')
-            expect(res.statusCode).toBe(200)
             expect(res.body.length).toBe(2)
-            expect(res.body.some(g => g.name === 'genre1')).toBeTruthy()
-            expect(res.body.some(g => g.name === 'genre2')).toBeTruthy()
+            expect(res.body.some(g => g.name === 'genreA')).toBeTruthy()
+            expect(res.body.some(g => g.name === 'genreB')).toBeTruthy()
+            expect(res.statusCode).toBe(200)
         })
     })
 
@@ -33,8 +34,13 @@ describe('Route /api/genres', () => {
             await genreB.save()
 
             const res = await request(app).get(`/api/genres/${genreA._id}`)
-            expect(res.status).toBe(200)
             expect(res.body).toHaveProperty('name', genreA.name)
+            expect(res.status).toBe(200)
+        })
+
+        it('Should return 404 if no genre with the given id exists', async () => {
+            const res = await request(app).get(`/api/genres/${mongoose.Types.ObjectId()}`)
+            expect(res.status).toBe(404)
         })
 
         it('Should return 404 status if the given id is invalid', async () => {
