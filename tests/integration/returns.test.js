@@ -128,7 +128,21 @@ describe('POST /api/returns', () => {
         expect(res.status).toBe(400)
     })
 
-    it('Should return 400 if no rental found for this customer/movie', async () => {
+    it('Should return 400 if customer id is invalid', async () => {
+        data.customerId = 1
+
+        const res = await sendPostRequest()
+        expect(res.status).toBe(400)
+    })
+
+    it('Should return 400 if movie id is invalid', async () => {
+        data.movieId = 1
+
+        const res = await sendPostRequest()
+        expect(res.status).toBe(400)
+    })
+
+    it('Should return 404 if no rental found for this customer/movie', async () => {
         await Rental.findByIdAndDelete(rental._id)
 
         const res = await sendPostRequest()
