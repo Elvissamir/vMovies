@@ -44,30 +44,55 @@ describe('Route /api/genres', () => {
     })
 
     describe('POST /', () => {
+        let token
+        let name
+
+        const sendPostRequest = async () => {
+            return await request(app)
+                            .post('/api/genres/')
+                            .set('x-auth-token', token)
+                            .send({ name: name })
+        }
+
+        beforeEach(() => {
+            token = new User().generateAuthToken()
+            name = 'GenreA'
+        })
+
+        it('Should store the genre and return it', async () => {
+            name = new Array(6).join('a')
+            
+            const res = await sendPostRequest() 
+            
+            const genre = await Genre.find({ name: name })
+            expect(genre).not.toBeNull()
+            
+            expect(res.status).toBe(200)
+            expect(res.body).toHaveProperty('_id')
+            expect(res.body).toHaveProperty('name', name)
+        })
+
         it('Should return 401 if client is not logged in', async () => {
-            const res = await request(app).post('/api/genres/').send({ name: 'genreA' })
+            token = ''
+            const res = await sendPostRequest()
             expect(res.status).toBe(401)
         })
 
         it('Should return 400 status if the given name is less than 5 characters', async () => {
-            const token = new User().generateAuthToken()
-
-            const data = { name: '1234' }
-            const res = await request(app)
-                                .post('/api/genres/')
-                                .set('x-auth-token', token)
-                                .send(data)
+            name = '1234'
+            const res = await sendPostRequest()
             expect(res.status).toBe(400)
         })
 
         it('Should return 400 status if the given name has more than 5 characters', async () => {
-            const token = new User().generateAuthToken()
+            name = new Array(52).join('a')
+            const res = await sendPostRequest()
+            expect(res.status).toBe(400)
+        })
 
-            const data = { name: new Array(52).join('a') }
-            const res = await request(app)
-                                .post('/api/genres/')
-                                .set('x-auth-token', token)
-                                .send(data)
+        it('Should return 400 status if the name is not provided', async () => {
+            name = undefined
+            const res = await sendPostRequest()
             expect(res.status).toBe(400)
         })
     })
