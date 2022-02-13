@@ -1,4 +1,3 @@
-const helmet = require('helmet')
 const express = require('express')
 const movies = require('../routes/movies')
 const genres = require('../routes/genres')
@@ -12,7 +11,6 @@ const error = require('../middleware/error')
 module.exports = function (app) {
     // Middleware
     app.use(express.json())
-    app.use(helmet())
     // Routes
     app.use('/api/movies', movies)
     app.use('/api/genres', genres)

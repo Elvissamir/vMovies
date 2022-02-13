@@ -1,9 +1,10 @@
 {
   "scripts": {
-    "test": "jest --watchAll --verbose"
+    "test": "jest --watchAll --verbose --coverage"
   },
   "dependencies": {
     "bcrypt": "^5.0.1",
+    "compression": "^1.7.4",
     "config": "^3.3.7",
     "dotenv": "^16.0.0",
     "express": "^4.17.2",

@@ -6,6 +6,7 @@ const { connectToDB } = require('./startup/database')
 
 require('./startup/logging')()
 require('./startup/config')()
+require('./startup/prod')(app)
 require('./startup/routes')(app)
 connectToDB()
 
