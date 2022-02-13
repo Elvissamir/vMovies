@@ -6,7 +6,7 @@ const mongoose = require('mongoose')
 const moment = require('moment')
 const { Movie } = require('../../models/Movie')
 
-describe('POST /api/returns', () => {
+describe('Route /api/returns', () => {
     let token
     let customerId
     let movieId

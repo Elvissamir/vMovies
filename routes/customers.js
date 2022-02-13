@@ -2,18 +2,23 @@ const router = require('express').Router()
 const auth = require('../middleware/auth')
 const admin = require('../middleware/admin')
 const { Customer, validateCustomer } = require('../models/Customer')
+const validateObjectId = require('../middleware/validateObjectId')
+
+
 
 router.get('/', async (req, res) => {
     const customers = await Customer.find()
     res.send(customers)
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateObjectId ,async (req, res) => {
     const customer = await Customer.findById(req.params.id)
     if (!customer) return res.status(404).send('The customer does not exist.')
 
     res.send(customer)
 })
+
+/*
 
 router.post('/', auth, async (req, res) => {
     const { error } = validateCustomer(req.body)
@@ -55,5 +60,7 @@ router.delete('/:id', [ auth, admin ], async (req, res) => {
 
     res.send(customer)
 })
+
+*/
 
 module.exports = router
