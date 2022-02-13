@@ -2,7 +2,8 @@ const Joi = require('joi')
 Joi.objectId = require('joi-objectid')(Joi)
 const mongoose = require('mongoose')
 
-const Rental = mongoose.model('Rental', {
+
+const rentalSchema = new mongoose.Schema({
     customer: {
         type: mongoose.Schema({
             first_name: {  
@@ -61,6 +62,15 @@ const Rental = mongoose.model('Rental', {
         min: 0
     }
 })
+
+rentalSchema.statics.lookup = function (customerId, movieId) {
+    return this.findOne({ 
+        "customer._id": customerId,
+        "movie._id": movieId
+    })
+}
+
+const Rental = mongoose.model('Rental', rentalSchema)
 
 const validateRental = (data) => {
     const dataSchema = Joi.object({
