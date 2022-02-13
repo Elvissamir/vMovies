@@ -9,7 +9,7 @@ const genresErrors = {
     notFound: {status: 404, message:'The genre you are looking for does not exist.'}
 }
 
-router.get('/', async (req, res, next) => {
+router.get('/', async (req, res) => {
     const genres = await Genre.find().sort('name')
     res.send(genres) 
 })
