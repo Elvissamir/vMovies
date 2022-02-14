@@ -18,11 +18,9 @@ router.get('/:id', validateObjectId ,async (req, res) => {
     res.send(customer)
 })
 
-/*
-
 router.post('/', auth, async (req, res) => {
     const { error } = validateCustomer(req.body)
-    if (error) return res.status(400).send(error.details[0].message)
+    if (error) return res.status(400).send(error.details[0].message) 
 
     const customer = new Customer({
         first_name: req.body.first_name,
@@ -35,6 +33,8 @@ router.post('/', auth, async (req, res) => {
 
     res.send(customer)
 })
+
+/*
 
 router.put('/:id', auth, async (req, res) => {
     const data = req.body
