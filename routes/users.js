@@ -4,7 +4,7 @@ const _ = require('lodash')
 const bcrypt = require('bcrypt')
 const { User, validateUser } = require('../models/User')
 
-router.get('/', auth, async (req, res) => {
+router.get('/', [ auth ], async (req, res) => {
     const users = await User.find()
     res.send(users)
 })
