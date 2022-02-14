@@ -13,7 +13,10 @@ describe('Auth middleware', () => {
                 .send({ name: 'genreA' })
     }
     
-    beforeEach(() => token = new User().generateAuthToken())
+    beforeEach(async () => {
+        token = new User().generateAuthToken()
+        await Genre.deleteMany()
+    })
     afterEach(async () => await Genre.deleteMany())
 
     it("Should return 401 if no token is provided", async () => {

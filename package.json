@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "jest --watchAll --verbose --coverage"
+    "test": "jest --watchAll --verbose"
   },
   "dependencies": {
     "bcrypt": "^5.0.1",

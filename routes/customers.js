@@ -34,8 +34,6 @@ router.post('/', auth, async (req, res) => {
     res.send(customer)
 })
 
-/*
-
 router.put('/:id', auth, async (req, res) => {
     const data = req.body
 
@@ -53,6 +51,8 @@ router.put('/:id', auth, async (req, res) => {
     await customer.save()
     res.send(customer)
 })
+
+/*
 
 router.delete('/:id', [ auth, admin ], async (req, res) => {
     const customer = await Customer.findByIdAndDelete(req.params.id)

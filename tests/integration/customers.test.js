@@ -249,4 +249,191 @@ describe('Route /api/customers', () => {
             expect(res.status).toBe(400)
         })
     })
+
+    describe('PUT /:id', () => {
+        let token 
+        let customer
+
+        beforeEach(async () => {
+            token = new User().generateAuthToken()
+            customer =  new Customer({
+                isGold: true,
+                first_name: 'fname',
+                last_name: 'lname',
+                phone: "04242224554"
+            })
+
+            await customer.save()
+        })
+
+        const sendPutRequest = (data) => {
+            return request(app)
+                .put(`/api/customers/${customer._id}`)
+                .set('x-auth-token', token)
+                .send(data)
+        }
+
+        it('Should update a customer with given data and return the customer', async () => {
+            const data = {
+                isGold: false,
+                first_name: 'newfname',
+                last_name: 'newlname',
+                phone: "12302402945"
+            }
+            
+            const res = await sendPutRequest(data)
+
+            const customerInDb = await Customer.findById(customer._id)
+
+            expect(customerInDb).toHaveProperty('first_name', data.first_name)
+            expect(customerInDb).toHaveProperty('last_name', data.last_name)
+            expect(customerInDb).toHaveProperty('phone', data.phone)
+            expect(customerInDb).toHaveProperty('isGold', data.isGold)
+            
+            expect(res.status).toBe(200)
+            expect(res.body).toHaveProperty('first_name', data.first_name)
+            expect(res.body).toHaveProperty('last_name', data.last_name)
+            expect(res.body).toHaveProperty('phone', data.phone)
+            expect(res.body).toHaveProperty('isGold', data.isGold)
+        })
+
+        it('Should return 401 if the user is not logged in', async () => {
+            token = ''
+            const data = {
+                isGold: true,
+                first_name: 'cfname',
+                last_name: 'clanme',
+                phone: "55555555545"
+            }
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(401)
+        })
+
+        it('Should return 400 if first_name is not provided', async () => {
+            const data = {
+                isGold: true,
+                last_name: 'clanme',
+                phone: "55555555545"
+            }
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if first_name has less than 2 letters', async () => {
+            const data = {
+                isGold: true,
+                first_name: 'a',
+                last_name: 'clanme',
+                phone: "55555555545"
+            }
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if first_name has more than 15 letters', async () => {
+            const data = {
+                isGold: true,
+                first_name: 'abcdefghijklmnopqrs',
+                last_name: 'clanme',
+                phone: "55555555545"
+            }
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if last_name is not provided', async () => {
+            data = {
+                isGold: true,
+                first_name: 'cfname',
+                phone: "55555555545"
+            }
+
+            const res = await sendPutRequest()
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if last_name has less than 2 letters', async () => {
+            data = {
+                isGold: true,
+                first_name: 'cfname',
+                last_name: 'a',
+                phone: "55555555545"
+            }
+            const res = await sendPutRequest()
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if last_name has more than 15 letters', async () => {
+            const data = {
+                isGold: true,
+                first_name: 'cfname',
+                last_name: 'abcdefghijklmnopqrs',
+                phone: "55555555545"
+            }
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if isGold property is not provided', async () => {
+            const data = {
+                first_name: 'cfname',
+                last_name: 'clname',
+                phone: "55555555545"
+            }
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if isGold is not a boolean', async () => {
+            const data = {
+                isGold: 'notBoolean',
+                first_name: 'cfname',
+                last_name: 'clanme',
+                phone: "55555555545"
+            }
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if phone is not provided', async () => {
+            const data = {
+                isGold: true,
+                first_name: 'cfname',
+                last_name: 'clname',
+            }
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if last_name has less than 11 numbers', async () => {
+            const data = {
+                isGold: true,
+                first_name: 'cfname',
+                last_name: 'clanme',
+                phone: "1"
+            }
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if phone has more than 11 numbers', async () => {
+            const data = {
+                isGold: true,
+                first_name: 'cfname',
+                last_name: 'clanme',
+                phone: "'01234567891011213'"
+            }
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+    })
 })
