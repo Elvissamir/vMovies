@@ -309,6 +309,22 @@ describe('Route /api/customers', () => {
             const res = await sendPutRequest(data)
             expect(res.status).toBe(401)
         })
+        
+        it('Should return 404 if the given id is invalid', async () => {
+            const data = {
+                isGold: true,
+                first_name: 'cfname',
+                last_name: 'clanme',
+                phone: "55555555545"
+            }
+
+            const res = await request(app)
+                                .put('/api/customers/1')
+                                .set('x-auth-token', token)
+                                .send(data)
+
+            expect(res.status).toBe(404)
+        })
 
         it('Should return 400 if first_name is not provided', async () => {
             const data = {
@@ -434,6 +450,86 @@ describe('Route /api/customers', () => {
 
             const res = await sendPutRequest(data)
             expect(res.status).toBe(400)
+        })
+    })
+
+    describe('DELETE /:id', () => {
+        let token 
+        let customer
+        let user
+        
+        beforeEach(async () => {
+            user = new User({
+                first_name: "fusername",
+                last_name: "lusername",
+                phone: "04443455434",
+                email: "user@mail.com",
+                password: "password",
+                isAdmin: true,
+            })
+
+            customer =  new Customer({
+                isGold: true,
+                first_name: 'fname',
+                last_name: 'lname',
+                phone: "04242224554"
+            })
+
+            await customer.save()
+        })
+
+        const sendDeleteRequest = () => {
+            return request(app)
+                .delete(`/api/customers/${customer._id}`)
+                .set('x-auth-token', token)
+        }
+
+        it('Should delete a user by given id', async () => {
+            token = user.generateAuthToken()
+            const res = await sendDeleteRequest()
+
+            const deleteCustomer = await Customer.findById(customer._id)
+            expect(deleteCustomer).toBe(null)
+
+            expect(res.status).toBe(200)
+            expect(res.body).toHaveProperty('first_name', customer.first_name)
+            expect(res.body).toHaveProperty('last_name', customer.last_name)
+            expect(res.body).toHaveProperty('phone', customer.phone)
+            expect(res.body).toHaveProperty('isGold', customer.isGold)
+        })
+
+        it('Should return 404 if the given id is invalid', async () => {
+            token = user.generateAuthToken()
+            const res = await request(app)
+                                .delete('/api/customers/1')
+                                .set('x-auth-token', token)
+
+            expect(res.status).toBe(404)
+        })
+
+        it('Should return 404 if the customer does not exist', async () => {
+            token = user.generateAuthToken()
+            await Customer.findByIdAndDelete(customer._id)
+
+            const res = await sendDeleteRequest()
+
+            expect(res.status).toBe(404)
+        })
+
+        it('Should return 403 if not authorized', async () => {
+            user.isAdmin = false
+            token = user.generateAuthToken()
+
+            const res = await sendDeleteRequest()
+
+            expect(res.status).toBe(403)
+        })
+
+        it('Should return 401 if not authenticated', async () => {
+            token = ''
+            const res = await sendDeleteRequest()
+
+            expect(res.status).toBe(401)
         })
     })
 })
