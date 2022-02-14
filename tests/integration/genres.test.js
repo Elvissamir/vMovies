@@ -102,4 +102,159 @@ describe('Route /api/genres', () => {
             expect(res.status).toBe(400)
         })
     })
+
+    describe('PUT /:id', () => {
+        let token
+        let genre
+
+        beforeEach(async () => {
+            genre = new Genre({
+                name: 'Genre'
+            })
+
+            await genre.save()
+
+            token = new User().generateAuthToken()
+        })
+
+        const sendPutRequest = (data) => {
+            return request(app)
+                        .put(`/api/genres/${genre._id}`)
+                        .set('x-auth-token', token)
+                        .send(data)
+        }
+
+        it('Should update the genre and return it', async () => {
+            const data = { name: 'New Name' }
+            const res = await sendPutRequest(data) 
+            
+            const genreInDb = await Genre.findById(genre._id)
+            expect(genreInDb.name).toBe('New Name')
+            
+            expect(res.status).toBe(200)
+            expect(res.body).toHaveProperty('_id')
+            expect(res.body).toHaveProperty('name', data.name)
+        })
+
+        it('Should return 401 if client is not logged in', async () => {
+            token = ''
+            const data = { name: 'New Name' }
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(401)
+        })
+
+        it('Should return 400 if the given name is less than 5 characters', async () => {
+            const data = { name: 'a' }
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 404 if the given id is invalid', async () => {
+            const data = { name: 'New Name' }
+
+            const res = await request(app)
+                                .put('/api/genres/1')
+                                .set('x-auth-token', token)
+                                .send(data)
+
+            expect(res.status).toBe(404)
+        })
+
+        it('Should return 400 if the given name has more than 5 characters', async () => {
+            const data = { name: new Array(52).join('a') }
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the name is not provided', async () => {
+            const data = {  } 
+
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+    })
+
+    describe('DELETE /:id', () => {
+        let token
+        let genre
+        let user
+
+        beforeEach(async () => {
+            user = new User({
+                first_name: "fusername",
+                last_name: "lusername",
+                phone: "04443455434",
+                email: "user@mail.com",
+                password: "password",
+                isAdmin: true,
+            })
+
+            await user.save()
+            
+            genre = new Genre({
+                name: 'Genre'
+            })
+
+            await genre.save()
+        })
+
+        afterEach(async () => {
+            await User.deleteMany()
+            await Genre.deleteMany()
+        })
+
+        const sendDeleteRequest = () => {
+            return request(app)
+                        .delete(`/api/genres/${genre._id}`)
+                        .set('x-auth-token', token)
+        }
+
+        it('Should delete the genre by given id', async () => {
+            token = user.generateAuthToken()
+            const res = await sendDeleteRequest()
+
+            const genreInDb = await Genre.findById(genre._id)
+
+            expect(genreInDb).toBeNull()
+
+            expect(res.status).toBe(200)
+            expect(res.body).toHaveProperty('name', genre.name)
+        })
+
+        it('Should return 401 if the user is not authenticated', async () => {
+            token = ''
+            const res = await sendDeleteRequest()
+
+            expect(res.status).toBe(401)
+        })
+
+        it('Should return 403 if the user is not authorized', async () => {
+            user.isAdmin = false
+            token = user.generateAuthToken()
+            const res = await sendDeleteRequest()
+
+            expect(res.status).toBe(403)
+        })
+
+        it('Should return 404 if the given id is invalid', async () => {
+            token = user.generateAuthToken()
+            const res = await request(app)
+                                .delete('/api/genres/1')
+                                .set('x-auth-token', token)
+
+            expect(res.status).toBe(404)
+        })
+
+        it('Should return 404 if the genre not exist', async () => {
+            token = user.generateAuthToken()
+            await Genre.findByIdAndDelete(genre._id)
+
+            const res = await sendDeleteRequest()
+
+            expect(res.status).toBe(404)
+        })
+    })
 })

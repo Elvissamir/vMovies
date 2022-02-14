@@ -362,18 +362,18 @@ describe('Route /api/customers', () => {
         })
 
         it('Should return 400 if last_name is not provided', async () => {
-            data = {
+            const data = {
                 isGold: true,
                 first_name: 'cfname',
                 phone: "55555555545"
             }
 
-            const res = await sendPutRequest()
+            const res = await sendPutRequest(data)
             expect(res.status).toBe(400)
         })
 
         it('Should return 400 if last_name has less than 2 letters', async () => {
-            data = {
+            const data = {
                 isGold: true,
                 first_name: 'cfname',
                 last_name: 'a',
@@ -478,18 +478,23 @@ describe('Route /api/customers', () => {
             await customer.save()
         })
 
+        afterEach(async () => {
+            await User.deleteMany()
+            await Customer.deleteMany()
+        })
+
         const sendDeleteRequest = () => {
             return request(app)
                 .delete(`/api/customers/${customer._id}`)
                 .set('x-auth-token', token)
         }
 
-        it('Should delete a user by given id', async () => {
+        it('Should delete a customer by given id', async () => {
             token = user.generateAuthToken()
             const res = await sendDeleteRequest()
 
-            const deleteCustomer = await Customer.findById(customer._id)
-            expect(deleteCustomer).toBe(null)
+            const deletedCustomer = await Customer.findById(customer._id)
+            expect(deletedCustomer).toBe(null)
 
             expect(res.status).toBe(200)
             expect(res.body).toHaveProperty('first_name', customer.first_name)
