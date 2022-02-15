@@ -92,6 +92,26 @@ describe('Route /api/users', () => {
             expect(res.body).toHaveProperty('email', data.email)
         })
 
+        it('Should return 400 if email is already in use', async () => {
+            await new User({
+                first_name: 'userA',
+                last_name: 'userB',
+                email: 'user@mail.com',
+                password: 'password',
+            }).save()
+
+            const data = {
+                first_name: 'userB',
+                last_name: 'userB',
+                email: 'user@mail.com',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+
+            expect(res.status).toBe(400)
+        })
+
         it('Should return 400 if the first name is not provided', async () => {
             const data = {
                 last_name: 'lname',
