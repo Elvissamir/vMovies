@@ -59,4 +59,189 @@ describe('Route /api/users', () => {
             expect(res.status).toBe(401)
         })
     })
+    
+    describe('POST /', () => {
+        const sendPostRequest = (data) => {
+            return request(app).post('/api/users').send(data)
+        } 
+
+        afterEach(async () => {
+            await User.deleteMany()
+        })
+
+        it('Should create a new user with given data', async () => {
+            const countBeforeRequest = await User.countDocuments()
+            expect(countBeforeRequest).toBe(0)
+
+            const data = {
+                first_name: 'fname',
+                last_name: 'lname',
+                email: 'newuser@mail.com',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+
+            const countAfterRequest = await User.countDocuments()
+            expect(countAfterRequest).toBe(1)
+
+            expect(res.status).toBe(200)
+            expect(res.body).toHaveProperty('_id')
+            expect(res.body).toHaveProperty('first_name', data.first_name)
+            expect(res.body).toHaveProperty('last_name', data.last_name)
+            expect(res.body).toHaveProperty('email', data.email)
+        })
+
+        it('Should return 400 if the first name is not provided', async () => {
+            const data = {
+                last_name: 'lname',
+                email: 'newuser@mail.com',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the first name has less than 2 letters', async () => {
+            const data = {
+                first_name: 'a',
+                last_name: 'lname',
+                email: 'newuser@mail.com',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the first name has more than 15 letters', async () => {
+            const data = {
+                first_name: 'abcdefghijklmnop',
+                last_name: 'lname',
+                email: 'newuser@mail.com',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the first name does not have only letters', async () => {
+            const data = {
+                first_name: 'strWithNumber1',
+                last_name: 'lname',
+                email: 'newuser@mail.com',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the last name is not provided', async () => {
+            const data = {
+                first_name: 'fname',
+                email: 'newuser@mail.com',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the last name has less than 2 letters', async () => {
+            const data = {
+                first_name: 'fname',
+                last_name: 'a',
+                email: 'newuser@mail.com',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the last name has more than 15 letters', async () => {
+            const data = {
+                first_name: 'fname',
+                last_name: 'abcdefghijklmnop',
+                email: 'newuser@mail.com',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the last name does not have only letters', async () => {
+            const data = {
+                first_name: 'fname',
+                last_name: 'strWithNumber1',
+                email: 'newuser@mail.com',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the email is not provided', async () => {
+            const data = {
+                first_name: 'fname',
+                last_name: 'lname',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if a invalid email is provided', async () => {
+            const data = {
+                email: 'notAnEmail',
+                first_name: 'fname',
+                last_name: 'lname',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if a password is not provided', async () => {
+            const data = {
+                email: 'user@mail.com',
+                first_name: 'fname',
+                last_name: 'lname',
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the password has less than 6 letters', async () => {
+            const data = {
+                email: 'user@mail.com',
+                first_name: 'fname',
+                last_name: 'lname',
+                password: 'a'
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the password has more than 1024 letters', async () => {
+            const data = {
+                email: 'user@mail.com',
+                first_name: 'fname',
+                last_name: 'lname',
+                password: new Array(1026).join('a')
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+    })
 })

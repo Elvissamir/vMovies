@@ -29,7 +29,10 @@ const userSchema = mongoose.Schema({
         minlength: 6,
         maxlength: 1024,
     },
-    isAdmin: Boolean
+    isAdmin: {
+        type: Boolean,
+        default: false
+    }
 })
 
 userSchema.methods.generateAuthToken = function () {
@@ -41,8 +44,8 @@ const User = mongoose.model('User', userSchema)
 
 const validateUser = (data) => {
     const dataSchema = Joi.object({
-        first_name: Joi.string().min(2).max(15).required(),
-        last_name: Joi.string().min(2).max(15).required(),
+        first_name: Joi.string().min(2).max(15).regex(/^[a-zA-Z]+$/).required(),
+        last_name: Joi.string().min(2).max(15).regex(/^[a-zA-Z]+$/).required(),
         email: Joi.string().min(10).max(255).email().required(),
         password: Joi.string().min(6).max(1024).required()
     })
