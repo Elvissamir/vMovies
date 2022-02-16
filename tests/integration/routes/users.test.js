@@ -60,6 +60,40 @@ describe('Route /api/users', () => {
             expect(res.status).toBe(401)
         })
     })
+
+    describe('GET /me', () => {
+        afterEach(async () => {
+            await User.deleteMany()
+        })
+
+        it('Should return the authenticated users data without password', async () => {
+            const user = new User({
+                first_name: 'fname',
+                last_name: 'lname',
+                email: 'user@mail.com',
+                password: 'password',
+                isAdmin: false
+            })
+
+            await user.save()
+
+            const token = user.generateAuthToken() 
+
+            const res = await request(app).get('/api/users/me').set('x-auth-token', token)
+
+            expect(res.body).toHaveProperty('first_name', user.first_name)
+            expect(res.body).toHaveProperty('last_name', user.last_name)
+            expect(res.body).toHaveProperty('email', user.email)
+            expect(res.body).toHaveProperty('isAdmin', user.isAdmin)
+            expect(res.body).not.toHaveProperty('password')
+        })
+
+        it('Should return 401 if not authenticated', async () => {
+            const res = await request(app).get('/api/users/me')
+
+            expect(res.status).toBe(401)
+        })
+    })
     
     describe('POST /', () => {
         const sendPostRequest = (data) => {
