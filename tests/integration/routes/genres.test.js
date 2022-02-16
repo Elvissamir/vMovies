@@ -136,6 +136,16 @@ describe('Route /api/genres', () => {
             expect(res.body).toHaveProperty('name', data.name)
         })
 
+
+        it('Should return 404 if the genre does not exist', async () => {
+            await Genre.deleteMany()
+            
+            const data = { name: 'New Name' }
+            const res = await sendPutRequest(data) 
+            
+            expect(res.status).toBe(404)
+        })
+
         it('Should return 401 if client is not logged in', async () => {
             token = ''
             const data = { name: 'New Name' }
