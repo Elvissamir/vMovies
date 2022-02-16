@@ -109,6 +109,18 @@ describe('Route /api/users', () => {
             expect(comparisonResult).toBe(true)
         })
 
+        it("Should add the auth token to the response headers", async () => {
+            const data = {
+                first_name: 'fname',
+                last_name: 'lname',
+                email: 'newuser@mail.com',
+                password: 'password',
+            }
+
+            const res = await sendPostRequest(data)
+            expect(res.headers).toHaveProperty('x-auth-token')
+        })
+
         it('Should return 400 if email is already in use', async () => {
             await new User({
                 first_name: 'userA',
