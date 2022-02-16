@@ -3,14 +3,14 @@ const auth = require('../middleware/auth')
 const admin = require('../middleware/admin')
 const { Movie, validateMovie } = require('../models/Movie')
 const { Genre } = require('../models/Genre')
+const validateObjectId = require('../middleware/validateObjectId')
 
 router.get('/', async (req, res) => {
     const movies = await Movie.find()
-
     res.send(movies)
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', [ validateObjectId ], async (req, res) => {
     const movie = await Movie.findById(req.params.id)
     if (!movie) return res.status(404).send('The movie does not exist')
 
