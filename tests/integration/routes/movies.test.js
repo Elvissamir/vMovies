@@ -92,10 +92,23 @@ describe('Route /api/movies', () => {
     })
 
     describe('POST /', () => {
+        let token
+
+        beforeEach(async () => {
+            token = new User().generateAuthToken()
+        })
+
         afterEach(async () => {
             await Movie.deleteMany()
             await Genre.deleteMany()
         })
+
+        const sendPostRequest = (data) => {
+            return request(app)
+                        .post('/api/movies')
+                        .set('x-auth-token', token)
+                        .send(data)
+        }
 
         it('Should create a new movie with the given data', async () => {
             const genre = new Genre({ name: "genre" })
@@ -108,11 +121,7 @@ describe('Route /api/movies', () => {
                 genreIds: [ genre._id ]
             }
             
-            const token = new User().generateAuthToken()
-            const res = await request(app)
-                                .post('/api/movies')
-                                .set('x-auth-token', token)
-                                .send(data)
+            const res = await sendPostRequest(data)
 
             const movieInDb = await Movie.findOne({ title: 'the movie' })
             expect(movieInDb).toHaveProperty('title', data.title)
@@ -125,6 +134,183 @@ describe('Route /api/movies', () => {
             expect(res.body).toHaveProperty('genres')
             expect(res.body).toHaveProperty('dailyRentalRate', data.dailyRentalRate)
             expect(res.body).toHaveProperty('numberInStock', data.numberInStock)
+        })
+
+        it('Should return 400 if title is not provided', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+
+            const data = {
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await sendPostRequest(data)
+
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if title has less than 2 letters', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            const data = {
+                title: 'a',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await sendPostRequest(data)
+
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if title has more than 255 letters', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            const data = {
+                title: new Array(257).join('a'),
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await sendPostRequest(data)
+
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if title is not a string', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            const data = {
+                title: 1234,
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if genreIds is not provided', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if genreIds is not an array', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: "notAnArray"
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if genreIds does not have at least one item', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: []
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the provided genre ids are not valid', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: ['1']
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if numberInStock is not provided', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+
+            const data = {
+                title: 'the movie',
+                dailyRentalRate: 1,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the numberInStock is less than 0', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            const data = {
+                title: 'the movie',
+                numberInStock: -1,
+                dailyRentalRate: 1,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the numberInStock is more than 255', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            const data = {
+                title: 'the movie',
+                numberInStock: 256,
+                dailyRentalRate: 1,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the numberInStock is not a number', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            const data = {
+                title: 'the movie',
+                numberInStock: 'notANumber',
+                dailyRentalRate: 1,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
         })
     })
 })
