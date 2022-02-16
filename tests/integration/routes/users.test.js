@@ -1,6 +1,7 @@
-const app = require('../../app')
+const app = require('../../../app')
 const request = require("supertest")
-const { User } = require('../../models/User')
+const bcrypt = require("bcrypt")
+const { User } = require('../../../models/User')
 
 describe('Route /api/users', () => {
     describe('GET /', () => {
@@ -64,7 +65,7 @@ describe('Route /api/users', () => {
         const sendPostRequest = (data) => {
             return request(app).post('/api/users').send(data)
         } 
-
+        
         afterEach(async () => {
             await User.deleteMany()
         })
@@ -90,6 +91,22 @@ describe('Route /api/users', () => {
             expect(res.body).toHaveProperty('first_name', data.first_name)
             expect(res.body).toHaveProperty('last_name', data.last_name)
             expect(res.body).toHaveProperty('email', data.email)
+        })
+
+        it('Should hash the users password', async () => {
+            const data = {
+                first_name: 'fname',
+                last_name: 'lname',
+                email: 'newuser@mail.com',
+                password: 'password',
+            }
+
+            await sendPostRequest(data)
+
+            const userInDb = await User.findOne({ email: data.email })
+
+            const comparisonResult = await bcrypt.compare(data.password, userInDb.password)
+            expect(comparisonResult).toBe(true)
         })
 
         it('Should return 400 if email is already in use', async () => {

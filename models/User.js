@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const config = require('config')
+const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const Joi = require('joi')
 
@@ -34,6 +35,12 @@ const userSchema = mongoose.Schema({
         default: false
     }
 })
+
+userSchema.statics.hashPassword = async function (password) {
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(password, salt)
+    return hashedPassword
+}
 
 userSchema.methods.generateAuthToken = function () {
     const token = jwt.sign({ _id: this._id, isAdmin: this.isAdmin }, config.get('jwtPrivateKey'))

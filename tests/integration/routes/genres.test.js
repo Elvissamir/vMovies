@@ -1,7 +1,7 @@
-const { Genre } = require('../../models/Genre')
-const { User } = require('../../models/User')
+const { Genre } = require('../../../models/Genre')
+const { User } = require('../../../models/User')
 const request = require('supertest')
-const app = require('../../app')
+const app = require('../../../app')
 const { random } = require('lodash')
 const mongoose = require('mongoose')
 

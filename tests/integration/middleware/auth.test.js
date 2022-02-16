@@ -1,7 +1,7 @@
 const request = require('supertest')
-const app = require('../../app')
-const { Genre } = require('../../models/Genre')
-const { User } = require('../../models/User')
+const app = require('../../../app')
+const { Genre } = require('../../../models/Genre')
+const { User } = require('../../../models/User')
 
 describe('Auth middleware', () => {
     let token

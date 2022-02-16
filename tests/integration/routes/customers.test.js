@@ -1,8 +1,8 @@
 const request = require('supertest')
 const mongoose = require('mongoose')
-const app = require('../../app')
-const { Customer } = require("../../models/Customer")
-const { User } = require('../../models/User')
+const app = require('../../../app')
+const { Customer } = require("../../../models/Customer")
+const { User } = require('../../../models/User')
 
 describe('Route /api/customers', () => {
     afterEach(async () => {

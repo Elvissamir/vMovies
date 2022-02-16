@@ -1,10 +1,10 @@
-const app = require('../../app')
+const app = require('../../../app')
 const request = require('supertest')
-const { User } = require('../../models/User')
-const { Rental } = require('../../models/Rental')
+const { User } = require('../../../models/User')
+const { Rental } = require('../../../models/Rental')
 const mongoose = require('mongoose')
 const moment = require('moment')
-const { Movie } = require('../../models/Movie')
+const { Movie } = require('../../../models/Movie')
 
 describe('Route /api/returns', () => {
     let token
