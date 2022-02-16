@@ -297,6 +297,20 @@ describe('Route /api/customers', () => {
             expect(res.body).toHaveProperty('isGold', data.isGold)
         })
 
+        it('Shoult return 404 if the customer does not exist', async () => {
+            const data = {
+                isGold: false,
+                first_name: 'newfname',
+                last_name: 'newlname',
+                phone: "12302402945"
+            }
+
+            await Customer.deleteMany()            
+            const res = await sendPutRequest(data)
+            
+            expect(res.status).toBe(404)
+        })
+
         it('Should return 401 if the user is not logged in', async () => {
             token = ''
             const data = {
@@ -379,7 +393,7 @@ describe('Route /api/customers', () => {
                 last_name: 'a',
                 phone: "55555555545"
             }
-            const res = await sendPutRequest()
+            const res = await sendPutRequest(data)
             expect(res.status).toBe(400)
         })
 
