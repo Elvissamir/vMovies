@@ -3,6 +3,7 @@ const request = require('supertest')
 const mongoose = require('mongoose')
 const { Movie } = require('../../../models/Movie')
 const { Genre } = require('../../../models/Genre')
+const { User } = require('../../../models/User')
 
 describe('Route /api/movies', () => {
     describe('GET /', () => {
@@ -87,6 +88,43 @@ describe('Route /api/movies', () => {
             const res = await request(app).get(`/api/movies/${randomDocumentId}`)
 
             expect(res.status).toBe(404)
+        })
+    })
+
+    describe('POST /', () => {
+        afterEach(async () => {
+            await Movie.deleteMany()
+            await Genre.deleteMany()
+        })
+
+        it('Should create a new movie with the given data', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const token = new User().generateAuthToken()
+            const res = await request(app)
+                                .post('/api/movies')
+                                .set('x-auth-token', token)
+                                .send(data)
+
+            const movieInDb = await Movie.findOne({ title: 'the movie' })
+            expect(movieInDb).toHaveProperty('title', data.title)
+            expect(movieInDb).toHaveProperty('genres')
+            expect(movieInDb).toHaveProperty('dailyRentalRate', data.dailyRentalRate)
+            expect(movieInDb).toHaveProperty('numberInStock', data.numberInStock)
+            
+            expect(res.status).toBe(200)
+            expect(res.body).toHaveProperty('title', data.title)
+            expect(res.body).toHaveProperty('genres')
+            expect(res.body).toHaveProperty('dailyRentalRate', data.dailyRentalRate)
+            expect(res.body).toHaveProperty('numberInStock', data.numberInStock)
         })
     })
 })
