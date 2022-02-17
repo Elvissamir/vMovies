@@ -312,5 +312,81 @@ describe('Route /api/movies', () => {
             const res = await sendPostRequest(data)
             expect(res.status).toBe(400)
         })
+
+        it('Should return 400 if the dailyRentalRate is not a number', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 'notANumber',
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the dailyRentalRate is not provided', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the dailyRentalRate is less than 0', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: -1,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the dailyRentalRate is more than 255', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 256,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPostRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 404 if an invalid genre id is provided', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+
+            const randomGenreId = mongoose.Types.ObjectId()
+            
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [genre._id, randomGenreId]
+            }
+            
+            const res = await sendPostRequest(data) 
+            expect(res.status).toBe(404) 
+        })
     })
 })
