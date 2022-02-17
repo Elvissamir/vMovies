@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const { Movie } = require('../../../models/Movie')
 const { Genre } = require('../../../models/Genre')
 const { User } = require('../../../models/User')
+const { send } = require('express/lib/response')
 
 describe('Route /api/movies', () => {
     describe('GET /', () => {
@@ -165,6 +166,24 @@ describe('Route /api/movies', () => {
             const res = await sendPostRequest(data)
 
             expect(res.status).toBe(400)
+        })
+
+        it('Should return 401 if the user is not authenticated', async () => {
+            const genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await request(app)
+                                .post('/api/movies')
+                                .send(data)
+
+            expect(res.status).toBe(401) 
         })
 
         it('Should return 400 if title has more than 255 letters', async () => {
@@ -387,6 +406,267 @@ describe('Route /api/movies', () => {
             
             const res = await sendPostRequest(data) 
             expect(res.status).toBe(404) 
+        })
+    })
+
+    describe('PUT /:id', () => {
+        let movie
+        let genre
+
+        beforeEach(async () => {
+            token = new User().generateAuthToken()
+
+            genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            movie = new Movie( {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genres: [ genre ]
+            })
+
+            await movie.save()
+        })
+
+        afterEach(async () => {
+            await Movie.deleteMany()
+            await Genre.deleteMany()
+        })
+
+        const sendPutRequest = (data) => {
+            return request(app)
+                        .put(`/api/movies/${movie._id}`)
+                        .set('x-auth-token', token)
+                        .send(data)
+        }
+
+        it('Should update movie with the given data', async () => {
+            const data = {
+                title: 'new title',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await sendPutRequest(data)
+
+            const movieInDb = await Movie.findOne({ title: data.title })
+            expect(movieInDb).toHaveProperty('title', data.title)
+            expect(movieInDb).toHaveProperty('genres')
+            expect(movieInDb).toHaveProperty('dailyRentalRate', data.dailyRentalRate)
+            expect(movieInDb).toHaveProperty('numberInStock', data.numberInStock)
+            
+            expect(res.status).toBe(200)
+            expect(res.body).toHaveProperty('title', data.title)
+            expect(res.body).toHaveProperty('genres')
+            expect(res.body).toHaveProperty('dailyRentalRate', data.dailyRentalRate)
+            expect(res.body).toHaveProperty('numberInStock', data.numberInStock)
+        })
+
+        it('Should return 404 if any of the given genre ids is invalid', async () => {
+            const data = {
+                title: 'new title',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id, '1' ]
+            }
+            
+            const res = await sendPutRequest(data)
+            
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 404 if any of the given genre ids does not exist', async () => {
+            const data = {
+                title: 'new title',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id, mongoose.Types.ObjectId() ]
+            }
+
+            const res = await sendPutRequest(data)
+            
+            expect(res.status).toBe(404)
+        })
+
+        it('Should return 400 if title has less than 2 letters', async () => {
+            const data = {
+                title: 'a',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 401 if the user is not authenticated', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await  request(app)
+                                    .put(`/api/movies/${movie._id}`)
+                                    .send(data)
+            expect(res.status).toBe(401) 
+        })
+
+        it('Should return 400 if title has more than 255 letters', async () => {
+            const data = {
+                title: new Array(257).join('a'),
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if title is not a string', async () => {
+            const data = {
+                title: 1234,
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if genreIds is not provided', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if genreIds is not an array', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: "notAnArray"
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if genreIds does not have at least one item', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: []
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if numberInStock is not provided', async () => {
+            const data = {
+                title: 'the movie',
+                dailyRentalRate: 1,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the numberInStock is less than 0', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: -1,
+                dailyRentalRate: 1,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the numberInStock is more than 255', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: 256,
+                dailyRentalRate: 1,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the numberInStock is not a number', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: 'notANumber',
+                dailyRentalRate: 1,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the dailyRentalRate is not a number', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 'notANumber',
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the dailyRentalRate is not provided', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the dailyRentalRate is less than 0', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: -1,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
+        })
+
+        it('Should return 400 if the dailyRentalRate is more than 255', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 256,
+                genreIds: [genre._id]
+            }
+            
+            const res = await sendPutRequest(data)
+            expect(res.status).toBe(400)
         })
     })
 })
