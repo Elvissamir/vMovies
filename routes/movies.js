@@ -4,6 +4,7 @@ const admin = require('../middleware/admin')
 const { Movie, validateMovie } = require('../models/Movie')
 const { Genre } = require('../models/Genre')
 const validateObjectId = require('../middleware/validateObjectId')
+const validate = require('../middleware/validate')
 
 router.get('/', async (req, res) => {
     const movies = await Movie.find()
@@ -17,10 +18,7 @@ router.get('/:id', [ validateObjectId ], async (req, res) => {
     res.send(movie)
 })
 
-router.post('/', auth, async (req, res) => {
-    const { error } = validateMovie(req.body)
-    if (error) return res.status(400).send(error.details[0].message)
-
+router.post('/', [ auth , validate(validateMovie) ], async (req, res) => {
     const genres = await Genre.find().where("_id").in(req.body.genreIds).exec()
 
     if (genres.length != req.body.genreIds.length) 
@@ -37,20 +35,18 @@ router.post('/', auth, async (req, res) => {
     res.send(movie)
 })
 
-router.put("/:id", auth, async (req, res) => {
-    const { error } = validateMovie(req.body)
-    if (error) return res.status(400).send(error.details[0].message)
+router.put("/:id", [ auth, validate(validateMovie), validateObjectId ], async (req, res) => {
+    const movie = await Movie.findById(req.params.id)
+    if (!movie) return res.status(404).send('The movie does not exist')    
 
     const genres = await Genre.find().where('_id').in(req.body.genreIds).exec()
     if (genres.length != req.body.genreIds.length)
         return res.status(404).send('The genre does not exist')
 
-    let movie = new Movie({
-        title: req.body.title,
-        numberInStock: req.body.numberInStock,
-        dailyRentalRate: req.body.dailyRentalRate,
-        genres: genres
-    })
+    movie.title = req.body.title
+    movie.numberInStock = req.body.numberInStock
+    movie.dailyRentalRate = req.body.dailyRentalRate
+    movie.genres = genres
 
     await movie.save()
     res.send(movie)

@@ -450,6 +450,7 @@ describe('Route /api/movies', () => {
             }
             
             const res = await sendPutRequest(data)
+            expect(res.status).toBe(200)
 
             const movieInDb = await Movie.findOne({ title: data.title })
             expect(movieInDb).toHaveProperty('title', data.title)
@@ -457,11 +458,42 @@ describe('Route /api/movies', () => {
             expect(movieInDb).toHaveProperty('dailyRentalRate', data.dailyRentalRate)
             expect(movieInDb).toHaveProperty('numberInStock', data.numberInStock)
             
-            expect(res.status).toBe(200)
             expect(res.body).toHaveProperty('title', data.title)
             expect(res.body).toHaveProperty('genres')
             expect(res.body).toHaveProperty('dailyRentalRate', data.dailyRentalRate)
             expect(res.body).toHaveProperty('numberInStock', data.numberInStock)
+        })
+
+        it('Should return 400 if the given movie id is invalid', async () => {
+            const data = {
+                title: 'new title',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await request(app)
+                                .put('/api/movies/1')
+                                .set('x-auth-token', token)
+                                .send(data)
+            
+            expect(res.status).toBe(404)
+        })
+
+        it('Should return 404 if the movie does not exist', async () => {
+            const data = {
+                title: 'new title',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await request(app)
+                                .put(`/api/movies/${mongoose.Types.ObjectId()}`)
+                                .set('x-auth-token', token)
+                                .send(data)
+            
+            expect(res.status).toBe(404)
         })
 
         it('Should return 404 if any of the given genre ids is invalid', async () => {
