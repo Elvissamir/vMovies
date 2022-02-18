@@ -412,6 +412,7 @@ describe('Route /api/movies', () => {
     describe('PUT /:id', () => {
         let movie
         let genre
+        let token
 
         beforeEach(async () => {
             token = new User().generateAuthToken()
@@ -462,6 +463,20 @@ describe('Route /api/movies', () => {
             expect(res.body).toHaveProperty('genres')
             expect(res.body).toHaveProperty('dailyRentalRate', data.dailyRentalRate)
             expect(res.body).toHaveProperty('numberInStock', data.numberInStock)
+        })
+
+        it('Should return 401 if the user is not authenticated', async () => {
+            const data = {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genreIds: [ genre._id ]
+            }
+            
+            const res = await  request(app)
+                                    .put(`/api/movies/${movie._id}`)
+                                    .send(data)
+            expect(res.status).toBe(401) 
         })
 
         it('Should return 400 if the given movie id is invalid', async () => {
@@ -532,20 +547,6 @@ describe('Route /api/movies', () => {
             
             const res = await sendPutRequest(data)
             expect(res.status).toBe(400)
-        })
-
-        it('Should return 401 if the user is not authenticated', async () => {
-            const data = {
-                title: 'the movie',
-                numberInStock: 5,
-                dailyRentalRate: 1,
-                genreIds: [ genre._id ]
-            }
-            
-            const res = await  request(app)
-                                    .put(`/api/movies/${movie._id}`)
-                                    .send(data)
-            expect(res.status).toBe(401) 
         })
 
         it('Should return 400 if title has more than 255 letters', async () => {
@@ -699,6 +700,97 @@ describe('Route /api/movies', () => {
             
             const res = await sendPutRequest(data)
             expect(res.status).toBe(400)
+        })
+    })
+
+    describe('DELETE /:id', () => {
+        let movie
+        let genre
+        let token
+
+        beforeEach(async () => {
+            token = new User({
+                first_name: 'fname',
+                last_name: 'lname',
+                password: User.hashPassword('password'),
+                email: 'user@mail.com',
+                isAdmin: true
+            }).generateAuthToken()
+
+            genre = new Genre({ name: "genre" })
+            await genre.save()
+            
+            movie = new Movie( {
+                title: 'the movie',
+                numberInStock: 5,
+                dailyRentalRate: 1,
+                genres: [ genre ]
+            })
+
+            await movie.save()
+        })
+
+        afterEach(async () => {
+            await Movie.deleteMany()
+            await Genre.deleteMany()
+        })
+
+        const sendDeleteRequest = () => {
+            return request(app)
+                        .delete(`/api/movies/${movie._id}`)
+                        .set('x-auth-token', token)
+        }
+
+        it('Should delete the movie by given id', async () => {
+            const countBeforeRequest = await Movie.count()
+            expect(countBeforeRequest).toBe(1)
+
+            const res = await sendDeleteRequest()
+
+            const countAfterRequest = await Movie.count()
+            expect(countAfterRequest).toBe(0)
+
+            expect(res.status).toBe(200)
+            expect(res.body).toHaveProperty('title', movie.title)
+        })
+
+        it('Should return 401 if the user is not authenticated', async () => {
+            const countBeforeRequest = await Movie.count()
+            expect(countBeforeRequest).toBe(1)
+
+            const res = await request(app).delete(`/api/movies/${movie._id}`)
+
+            const countAfterRequest = await Movie.count()
+            expect(countAfterRequest).toBe(1)
+
+            expect(res.status).toBe(401)
+        })
+
+        it('Should return 403 if the user is not authorized', async () => {
+            token = new User({
+                first_name: 'fname',
+                last_name: 'lname',
+                password: User.hashPassword('password'),
+                email: 'user@mail.com',
+                isAdmin: false
+            }).generateAuthToken()
+            
+            const res = await request(app).delete(`/api/movies/${movie._id}`).set('x-auth-token', token)
+            
+            expect(res.status).toBe(403)
+        })
+
+        it('Should return 404 if invalid movie id is given', async () => {
+            const res = await request(app).delete('/api/movies/1').set('x-auth-token', token)
+            expect(res.status).toBe(404)
+        })
+
+        it('Should return 404 the movie does not exist', async () => {
+            const randomMovieId = mongoose.Types.ObjectId()
+            const res = await request(app)
+                                .delete(`/api/movies/${randomMovieId}`)
+                                .set('x-auth-token', token)
+            expect(res.status).toBe(404)
         })
     })
 })
