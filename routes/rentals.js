@@ -36,16 +36,11 @@ router.post('/', auth, async (req, res) => {
         }
     })
 
-    try {
-        rental.save()
-        movie.numberInStock = movie.numberInStock - 1
-        await movie.save()
+    rental.save()
+    movie.numberInStock = movie.numberInStock - 1
+    await movie.save()
 
-        res.send(rental)
-    } 
-    catch (ex) {
-        res.status(500).send("Something failed.")
-    }
+    res.send(rental)
 })
 
 module.exports = router
