@@ -43,7 +43,13 @@ userSchema.statics.hashPassword = async function (password) {
 }
 
 userSchema.methods.generateAuthToken = function () {
-    const token = jwt.sign({ _id: this._id, isAdmin: this.isAdmin }, config.get('jwtPrivateKey'))
+    const data = {
+        _id: this._id, 
+        first_name: this.first_name,
+        last_name: this.last_name,
+        email: this.email,
+        isAdmin: this.isAdmin }
+    const token = jwt.sign(data, config.get('jwtPrivateKey'))
     return token
 }
 

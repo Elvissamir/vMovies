@@ -1,10 +1,9 @@
 FROM node:16-alpine3.14
 
-ARG DEV_PORT
-
 WORKDIR /var/www
 COPY package*.json ./
-RUN npm install -g nodemon
+RUN npm install -g nodemon 
 COPY . .
-CMD [ "nodemon", "server.js"]
-EXPOSE ${DEV_PORT}
+EXPOSE 3001
+
+CMD [ "nodemon", "server.js" ]

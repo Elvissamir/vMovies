@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "jest --watchAll --runInBand --verbose --coverage"
+    "test": "APP_ENV=testing jest --watchAll --runInBand --verbose --setupFiles dotenv/config"
   },
   "dependencies": {
     "bcrypt": "^5.0.1",
@@ -18,11 +18,15 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
     "mongoose": "^6.2.1",
+    "nodemon": "^2.0.15",
     "winston": "^3.5.1",
     "winston-mongodb": "^5.0.7"
   },
   "devDependencies": {
     "jest": "^27.5.1",
     "supertest": "^6.2.2"
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
 }

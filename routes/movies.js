@@ -18,7 +18,7 @@ router.get('/:id', [ validateObjectId ], async (req, res) => {
     res.send(movie)
 })
 
-router.post('/', [ auth , validate(validateMovie) ], async (req, res) => {
+router.post('/', [ auth, validate(validateMovie) ], async (req, res) => {
     const genres = await Genre.find().where("_id").in(req.body.genreIds).exec()
 
     if (genres.length != req.body.genreIds.length) 
